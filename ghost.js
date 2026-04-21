@@ -494,7 +494,7 @@ function processGhostFlameAndToast() {
             g.toastPieRemaining--;
             if (g.toastPieRemaining <= 0) {
                 g.alive = false;
-                score += 40;
+                score += 20;
             }
             continue;
         }

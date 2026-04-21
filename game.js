@@ -711,7 +711,7 @@ const hudBaseY = () => map.length * oneBlockSize + 18;
 let drawScore = () => {
     canvasContext.font = "20px Emulogic";
     canvasContext.fillStyle = "white";
-    canvasContext.fillText("Score: " + score + " (150)", 8, hudBaseY());
+    canvasContext.fillText("Score: " + score + " (180)", 8, hudBaseY());
 };
 
 let drawEnergyBar = () => {

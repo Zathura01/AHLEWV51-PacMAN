@@ -18,7 +18,7 @@ class Pacman {
 
     this.flameFramesRemaining = 0;
     this.flameCooldown = 0;
-    this.flameCost = 40;
+    this.flameCost = 30;
     this.flameDuration = 20;
 
     this.solarPanelFramesRemaining = 0;

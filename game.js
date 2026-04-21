@@ -28,7 +28,7 @@ let toastDiscoFrames = 0;
 let gameTick = 0;
 
 
-const SCORE_TO_SPAWN_SPHERE = 250;          // points needed to spawn the sphere
+const SCORE_TO_SPAWN_SPHERE = 10;          // points needed to spawn the sphere
 const SPHERE_CELL = { x: 10, y: 10 };        // middle of ghost-spawn box
 let teleportSphere = null;                   // { x, y, spawnTick } once active
 let gameWon = false;
@@ -294,12 +294,71 @@ let drawGameOver = () => {
 
 
 // ---------- End / Pause / Resume / New Game ----------
+// Win video overlay handling
+let winVideoTimer = null;
+function playWinVideoAndRestart() {
+    const overlay = document.getElementById("win-video-overlay");
+    const video = document.getElementById("win-video");
+    if (!overlay || !video) {
+        // Fallback: just restart after a brief pause
+        setTimeout(() => newGame(), 1500);
+        return;
+    }
+
+    // Stop game sounds so the video's own audio (if any) is clear
+    try { SFX.stopAll(); } catch (e) {}
+
+    const cleanupAndRestart = () => {
+        video.removeEventListener("ended", onEnded);
+        video.removeEventListener("error", onEnded);
+        overlay.classList.remove("is-visible");
+        overlay.setAttribute("aria-hidden", "true");
+        try { video.pause(); } catch (e) {}
+        try { video.currentTime = 0; } catch (e) {}
+        // Return to main screen and restart the game
+        newGame();
+    };
+
+    const onEnded = () => cleanupAndRestart();
+
+    // Show overlay + start playback
+    overlay.classList.add("is-visible");
+    overlay.setAttribute("aria-hidden", "false");
+    try { video.currentTime = 0; } catch (e) {}
+    video.addEventListener("ended", onEnded, { once: true });
+    video.addEventListener("error", onEnded, { once: true });
+
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(() => {
+            // If autoplay is blocked (e.g. due to audio), retry muted
+            try {
+                video.muted = true;
+                video.play().catch(() => cleanupAndRestart());
+            } catch (e) {
+                cleanupAndRestart();
+            }
+        });
+    }
+}
+
 function endGame(reason) {
     if (gameState === STATE.ENDED) return;
     gameState = STATE.ENDED;
     //SFX.runOff();
-    if (reason === "win") SFX.play("win");
-    else SFX.play("lose");
+    //if (reason === "win") SFX.play("win");
+    //else SFX.play("lose");
+        if (reason === "win") {
+        SFX.play("win");
+        // 1.5s delay before playing the fullscreen win video overlay
+        if (winVideoTimer) clearTimeout(winVideoTimer);
+        winVideoTimer = setTimeout(() => {
+            winVideoTimer = null;
+            playWinVideoAndRestart();
+        }, 1500);
+    } else {
+        SFX.play("lose");
+    }
     // No clearInterval: the loop keeps drawing overlays,
     // but update() is a no-op while state !== RUNNING.
 }
@@ -317,6 +376,13 @@ function resumeGame() {
 }
 
 function newGame() {
+        // cancel any pending win video sequence
+    if (winVideoTimer) { clearTimeout(winVideoTimer); winVideoTimer = null; }
+    const _overlay = document.getElementById("win-video-overlay");
+    const _video = document.getElementById("win-video");
+    if (_overlay) { _overlay.classList.remove("is-visible"); _overlay.setAttribute("aria-hidden", "true"); }
+    if (_video) { try { _video.pause(); _video.currentTime = 0; } catch (e) {} }
+
     // reset state
     SFX.stopAll();
     score = 0;

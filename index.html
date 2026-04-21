@@ -203,6 +203,29 @@
     /* hidden images just used as sprite sources */
     .sprite-source { display: none; }
 
+.win-video-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 250ms ease;
+    }
+    .win-video-overlay.is-visible {
+      display: flex;
+      opacity: 1;
+    }
+    .win-video-overlay video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+
+
     /* --- mobile / narrow viewport --- */
     @media (max-width: 1500px), (pointer: coarse) {
       .controls { display: block; }
@@ -266,6 +289,17 @@
   <audio id="sfx-toast"        preload="auto" src="assets/sfx/toast.mp3"></audio>
   <audio id="sfx-lose"         preload="auto" src="assets/sfx/lose.mp3"></audio>
   <audio id="sfx-win"          preload="auto" src="assets/sfx/win.mp3"></audio>
+
+    <div id="win-video-overlay" class="win-video-overlay" data-testid="win-video-overlay" aria-hidden="true">
+    <video id="win-video"
+           data-testid="win-video"
+           src="endtom.mp4"
+           preload="auto"
+           playsinline
+           webkit-playsinline></video>
+  </div>
+
+
 
   <!-- Load order matters: pacman & ghost define classes used by game.js -->
   <script src="pacman.js"></script>

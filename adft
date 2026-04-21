@@ -1,0 +1,84 @@
+
+Paste this into your new chat:
+
+I’m building a custom Pac-Man–style game as a software developer and want to continue refining the concept and implementation.
+
+Here’s my current idea:
+
+It’s based on a classic Pac-Man game (which I already have coded), but I’m adding new mechanics:
+
+The Pac-Man character is redesigned to look like a “Tom lizard” style character (simple but slightly customized visually).
+The character can fire flames like a dragon, which consumes energy.
+There is an energy bar (max ~100):
+Running/sprinting consumes energy
+Flame attack consumes a chunk of energy
+Eating peas restores energy
+Standing still slowly regenerates energy
+
+Gameplay loop:
+
+Move through maze → collect peas → manage energy → avoid enemies → decide when to use flame or conserve energy
+
+Enemies:
+
+4 classic enemies (like Pac-Man ghosts)
+Cannot be killed
+Different behaviors (chaser, ambusher, random, patrol)
+2 new enemies:
+Appear mid-game
+Can be killed using flame
+Slightly slower but more dangerous
+
+Special mechanic:
+
+If caught by enemies, instead of dying normally:
+Player temporarily turns into a solar panel
+Frozen for a few seconds
+Slowly regenerates energy
+Then respawns
+
+Goal:
+
+Eat all peas → unlock a cellphone chamber
+When entering chamber:
+Short animation plays
+Character taps phone
+Sends “rescue signal”
+
+Controls:
+
+Movement: WASD / Arrow keys
+Flame: Space
+Sprint: Shift (uses energy)
+
+Design priorities:
+
+Keep it simple, not over-engineered
+Focus on game feel and decision-making
+Player should constantly decide:
+Run vs conserve energy
+Fight vs avoid
+Risk vs safety
+
+Tech side:
+
+I’m working locally using VS Code
+I’ve cloned my GitHub repo using:
+git clone <repo-url>
+cd into project
+I want help with:
+Implementing energy system cleanly
+Adding flame mechanic
+Enemy AI logic
+Structuring code properly
+Possibly making it a web-based playable game
+
+Also, separately:
+I’ve been interacting with a girl recently (colleague), she recently went through a breakup, and I’ve been keeping communication simple and grounded. I prefer practical, non-over-the-top interactions and want advice that is direct and realistic.
+
+Continue helping me refine both:
+
+Game development (primary focus)
+Communication strategy (secondary, practical advice only)
+
+Avoid overly emotional or generic advice. Keep responses structured, practical, and implementable.

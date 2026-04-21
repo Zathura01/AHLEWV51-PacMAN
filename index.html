@@ -1,30 +1,275 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body, html {
-            margin: 0;
-            height: 100%;
-            overflow: hidden;
-        }
-        canvas {
-            display: block;
-        }
-    </style>
-    
-    <title>Document</title>
-</head>
-<body style="margin: 0px;background-color:black ;overflow-y: hidden;overflow-x: hidden;">
-    <canvas id="canvas" width="500" height="500">sadf</canvas>
-    <div style="display:none">
-        <img src="assets/animations.gif" alt="" id="animations">
-        <img src="assets/ghost.png" id="ghosts">
-    </div>
-    <script src="ghost.js"></script>
-    <script src="pacman.js"></script>
-    <script src="game.js"></script>
-</body>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#05030e" />
+  <title>Tom: Teleport Run</title>
+  <style>
+    :root {
+      --accent: #9ef7ff;
+      --accent-2: #ff5fb1;
+      --bg-1: #05030e;
+      --bg-2: #14082a;
+      --pad: 12px;
+    }
 
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background: radial-gradient(ellipse at top, var(--bg-2), var(--bg-1) 70%);
+      color: #fff;
+      font-family: \"Emulogic\", ui-monospace, Menlo, Consolas, monospace;
+      overflow: hidden;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    /* full-viewport flex center */
+    .stage {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--pad);
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+               env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    .title {
+      font-size: clamp(14px, 3vw, 20px);
+      letter-spacing: 3px;
+      color: var(--accent);
+      text-shadow: 0 0 12px rgba(158, 247, 255, 0.6),
+                   0 0 24px rgba(120, 80, 255, 0.35);
+      margin: 0;
+      text-align: center;
+    }
+
+    /* Canvas wrapper: scales canvas down on small screens
+       while preserving its intrinsic aspect ratio.
+       Native size is 420x516 (21*20 by 23*20 + 56). */
+    .canvas-wrap {
+      --cw: 420px;
+      --ch: 516px;
+      width: min(var(--cw), 100vw);
+      aspect-ratio: 420 / 516;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: linear-gradient(160deg, #1a0a3a 0%, #05030e 100%);
+      box-shadow:
+        0 0 0 1px rgba(158, 247, 255, 0.18),
+        0 10px 40px rgba(120, 80, 255, 0.35),
+        inset 0 0 30px rgba(255, 95, 177, 0.08);
+      overflow: hidden;
+    }
+
+    canvas#canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+
+    .toolbar { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 8px);
+      left: 50%; transform: translateX(-50%); z-index: 50;
+      display: flex; gap: 6px; padding: 6px;
+      background: rgba(8,4,22,0.72); backdrop-filter: blur(6px);
+      border: 1px solid rgba(158,247,255,0.28); border-radius: 999px;
+      box-shadow: 0 4px 20px rgba(120,80,255,0.35);
+    }
+    .toolbar button {
+      appearance:none; border:0; padding:7px 14px; border-radius:999px;
+      font:" 11px Emulogic";
+      letter-spacing:2px; text-transform:uppercase; cursor:pointer;
+      color:#e9f7ff; background: linear-gradient(180deg,#22113f,#0c0620);
+      border: 1px solid rgba(158,247,255,0.22);
+      transition: transform 60ms ease, box-shadow 120ms ease, color 120ms ease;
+    }
+    .toolbar button:hover { color:var(--accent); box-shadow: 0 0 12px rgba(158,247,255,0.4); }
+    .toolbar button:active { transform: translateY(1px) scale(0.97); }
+    .toolbar button[data-active="true"] {
+      color: #fff; background: linear-gradient(180deg,#4a1863,#1a0a3a);
+      box-shadow: 0 0 14px rgba(255,95,177,0.55);
+      border-color: rgba(255,95,177,0.6);
+    }
+
+    /* Touch controls */
+    .controls {
+      display: none;
+      width: min(420px, 100vw);
+      padding: 0 16px;
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      width: 100%;
+    }
+
+    .dpad {
+      display: grid;
+      grid-template-columns: repeat(3, 52px);
+      grid-template-rows: repeat(3, 52px);
+      gap: 6px;
+    }
+
+    .dpad .btn { grid-column: auto; grid-row: auto; }
+    #up    { grid-column: 2; grid-row: 1; }
+    #left  { grid-column: 1; grid-row: 2; }
+    #right { grid-column: 3; grid-row: 2; }
+    #down  { grid-column: 2; grid-row: 3; }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid rgba(158, 247, 255, 0.35);
+      background: linear-gradient(180deg, #1b0e3a, #0b0520);
+      color: var(--accent);
+      font: inherit;
+      font-size: 22px;
+      line-height: 1;
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow:
+        0 2px 0 #000,
+        0 0 12px rgba(158, 247, 255, 0.25),
+        inset 0 0 10px rgba(120, 80, 255, 0.25);
+      transition: transform 60ms ease, box-shadow 120ms ease;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .btn:active {
+      transform: translateY(1px) scale(0.97);
+      box-shadow:
+        0 0 0 #000,
+        0 0 16px rgba(255, 95, 177, 0.55),
+        inset 0 0 12px rgba(255, 95, 177, 0.35);
+      color: #fff;
+    }
+
+    .btn.fire {
+      width: 72px; height: 72px;
+      font-size: 30px;
+      border-color: rgba(255, 95, 177, 0.55);
+      color: #ffd0e6;
+      box-shadow:
+        0 2px 0 #000,
+        0 0 18px rgba(255, 95, 177, 0.45),
+        inset 0 0 12px rgba(255, 95, 177, 0.35);
+    }
+
+    .btn.sprint {
+      width: 72px; height: 38px;
+      font-size: 12px;
+      letter-spacing: 2px;
+    }
+
+    .hint {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: #7a88c2;
+      text-align: center;
+      margin: 0;
+    }
+
+    /* hidden images just used as sprite sources */
+    .sprite-source { display: none; }
+
+    /* --- mobile / narrow viewport --- */
+    @media (max-width: 1500px), (pointer: coarse) {
+      .controls { display: block; }
+    }
+
+    /* when height is tight (landscape phone), shrink gap & title */
+    @media (max-height: 640px) {
+      .stage { gap: 6px; }
+      .title { font-size: 12px; letter-spacing: 2px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar" role="toolbar" aria-label="Game controls">
+    <button id="btn-start"   data-testid="game-start-btn">Start</button>
+    <button id="btn-pause"   data-testid="game-pause-btn">Pause</button>
+    <button id="btn-newgame" data-testid="game-newgame-btn">New&nbsp;Game</button>
+  </div>
+
+
+
+  <div class="stage">
+    <h1 class="title">TOM &nbsp;·&nbsp; TELEPORT RUN</h1>
+
+    <div class="canvas-wrap">
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="controls" aria-label="Touch controls">
+      <div class="controls-row">
+        <div class="dpad" role="group" aria-label="Direction pad">
+          <button class="btn" id="up"    aria-label="Up">▲</button>
+          <button class="btn" id="left"  aria-label="Left">◀</button>
+          <button class="btn" id="right" aria-label="Right">▶</button>
+          <button class="btn" id="down"  aria-label="Down">▼</button>
+        </div>
+        <div class="action">
+          <button class="btn fire"   id="fire"   aria-label="Fire flame">🔥</button>
+          <button class="btn sprint" id="sprint" aria-label="Sprint">SPRINT</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sprite sources used by the game. Replace src paths if yours differ. -->
+    <img id="animations"
+         class="sprite-source"
+         src="assets/animations.gif"
+         alt="" />
+    <img id="ghosts"
+         class="sprite-source"
+         src="assets/ghost.png"
+         alt="" />
+  </div>
+
+
+  <audio id="sfx-flame"        preload="auto" src="assets/sfx/flame.mp3"></audio>
+  <audio id="sfx-run"          preload="auto" src="assets/sfx/run1.mp3"   loop></audio>
+  <audio id="sfx-collide"      preload="auto" src="assets/sfx/collide.mp3"></audio>
+  <audio id="sfx-elite-enter"  preload="auto" src="assets/sfx/elite-enter.mp3"></audio>
+  <audio id="sfx-toast"        preload="auto" src="assets/sfx/toast.mp3"></audio>
+  <audio id="sfx-lose"         preload="auto" src="assets/sfx/lose.mp3"></audio>
+  <audio id="sfx-win"          preload="auto" src="assets/sfx/win.mp3"></audio>
+
+  <!-- Load order matters: pacman & ghost define classes used by game.js -->
+  <script src="pacman.js"></script>
+  <script src="ghost.js"></script>
+  <script src="game.js"></script>
+</body>
 </html>

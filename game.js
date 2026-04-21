@@ -88,7 +88,34 @@ const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 // Tracks whichever run-variant is currently looping, so runOff() can stop it.
 let activeRunEl = null;
 
+let _audioUnlocked = false;
+function unlockAudio() {
+    if (_audioUnlocked) return;
+    _audioUnlocked = true;
 
+    const primeOne = (el) => {
+        if (!el) return;
+        try {
+            el.muted = true;
+            const p = el.play();
+            const reset = () => {
+                try { el.pause(); el.currentTime = 0; } catch (_) {}
+                el.muted = false;
+            };
+            if (p && typeof p.then === "function") {
+                p.then(reset).catch(() => { el.muted = false; });
+            } else {
+                reset();
+            }
+        } catch (_) { el.muted = false; }
+    };
+
+    for (const k in SFX_EL)   primeOne(SFX_EL[k]);
+    for (const k in SFX_POOL) SFX_POOL[k].forEach(primeOne);
+}
+["pointerdown", "touchstart", "keydown", "click"].forEach((evt) =>
+    window.addEventListener(evt, unlockAudio, { once: true, capture: true, passive: true })
+);
 
 const SFX = {
     play(name) {
@@ -858,6 +885,18 @@ function getGhostSpeedScale() {
     return Math.max(1, 1 + Math.min(0.5, score / 200)); // keeps speed ≈ 2.4–3.6
 }
 (function bindTouchControls() {
+
+    const bindTap = (el, handler) => {
+        if (!el) return;
+        const wrapped = (e) => {
+            if (e.cancelable) e.preventDefault();
+            handler(e);
+        };
+        el.addEventListener("pointerdown", wrapped);
+        el.addEventListener("touchstart",  wrapped, { passive: false });
+    };
+
+
     const bindDir = (id, dir) => {
         const el = document.getElementById(id);
         if (el) {

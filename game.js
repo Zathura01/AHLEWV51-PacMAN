@@ -28,7 +28,7 @@ let toastDiscoFrames = 0;
 let gameTick = 0;
 
 
-const SCORE_TO_SPAWN_SPHERE = 200;          // points needed to spawn the sphere
+const SCORE_TO_SPAWN_SPHERE = 125;          // points needed to spawn the sphere
 const SPHERE_CELL = { x: 10, y: 10 };        // middle of ghost-spawn box
 let teleportSphere = null;                   // { x, y, spawnTick } once active
 let gameWon = false;
@@ -711,7 +711,7 @@ const hudBaseY = () => map.length * oneBlockSize + 18;
 let drawScore = () => {
     canvasContext.font = "20px Emulogic";
     canvasContext.fillStyle = "white";
-    canvasContext.fillText("Score: " + score, 8, hudBaseY());
+    canvasContext.fillText("Score: " + score + " (125)", 8, hudBaseY());
 };
 
 let drawEnergyBar = () => {

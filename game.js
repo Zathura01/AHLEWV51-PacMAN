@@ -898,25 +898,32 @@ function getGhostSpeedScale() {
 
 
     const bindDir = (id, dir) => {
-        const el = document.getElementById(id);
+/*         const el = document.getElementById(id);
         if (el) {
             el.addEventListener("click", () => {
                 pacman.nextDirection = dir;
             });
-        }
+        } */
+                bindTap(document.getElementById(id), () => { pacman.nextDirection = dir; });
+
     };
     bindDir("left", DIRECTION_LEFT);
     bindDir("right", DIRECTION_RIGHT);
     bindDir("up", DIRECTION_UP);
     bindDir("down", DIRECTION_BOTTOM);
-    const fireBtn = document.getElementById("fire");
+/*     const fireBtn = document.getElementById("fire");
     if (fireBtn) {
         fireBtn.addEventListener("click", () => pacman.tryStartFlame());
         fireBtn.addEventListener("click", () => {
             if (gameState === STATE.RUNNING && pacman.tryStartFlame()) SFX.play("flame");
+ */
+                bindTap(document.getElementById("fire"), () => {
+        if (gameState === STATE.RUNNING && pacman.tryStartFlame()) {
+            SFX.play("flame");
+        }
         });
     }
-})();
+)();
 
 // ---------- Floating toolbar (Start / Pause / New Game) ----------
 function syncToolbar() {

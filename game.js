@@ -28,7 +28,7 @@ let toastDiscoFrames = 0;
 let gameTick = 0;
 
 
-const SCORE_TO_SPAWN_SPHERE = 10;          // points needed to spawn the sphere
+const SCORE_TO_SPAWN_SPHERE = 200;          // points needed to spawn the sphere
 const SPHERE_CELL = { x: 10, y: 10 };        // middle of ghost-spawn box
 let teleportSphere = null;                   // { x, y, spawnTick } once active
 let gameWon = false;
